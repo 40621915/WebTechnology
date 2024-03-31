@@ -1,12 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Page</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countries Been</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css">
+  <style>
+  
+
+  #mapid {
+    height: 50vh; /* Fixed height */
+    width: 100%;
+    position: fixed; /* Optional: Makes the map stay in the same position */
+    top: 0; /* Adjust as needed */
+    left: 0; /* Adjust as needed */
+  }
+
+  
+
+  /* Style for the country list container */
+    #city-search {
+      width: 100%;
+      background-color: #f0f0f0;
+      padding: 10px;
+      text-align: center;
+      margin-top: 50vh; /* Adjust this to the height of your map */
+      max-height: 50vh; /* Maximum height */
+      overflow-y: auto; /* Makes it scrollable */
+    }
+
+    #country-search-input {
+      width: 50%; /* Reduced from 95% to 50% */
+      padding: 5px; /* Reduced padding */
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    #search-bar-container {
+    position: fixed; /* Fixed position within the viewport */
+    top: 0; /* Align to the top of the viewport */
+    left: 0; /* Align to the left of the viewport */
+    width: 100%; /* Full width */
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+
+
+
+    #country-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    #country-list li {
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .country-checkbox {
+      margin-right: 10px;
+    }
+
+    /* Set a fixed width for the label to ensure checkbox alignment */
+    label {
+      display: inline-block;
+      width: 200px; /* Adjust the width as needed */
+      text-align: left; /* Align text to the left within the label */
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Test</h1>
+  <div id="mapid"></div>
+  <div id="city-search">
+    <div id="search-header">
+      <h1>Countries Been</h1>
+      <input type="text" id="country-search-input" placeholder="Search for a country...">
+    </div>
+    <ul id="country-list"></ul>
+  </div>
+  
+  <script>
+    const countryMapping = {
+      "Australia": "🇦🇺 Australia"
+    };
+
+    const southWest = L.latLng(-90, -180); // Bottom-left corner of the world
+    const northEast = L.latLng(90, 180);   // Top-right corner of the world
+    const bounds = L.latLngBounds(southWest, northEast);
+
+    // Create the map and set the maxBounds option
+    const map = L.map("mapid", {
+      maxBounds: bounds,  // Set the maximum bounds
+      maxBoundsViscosity: 1,  // Optional: Adjust the stickiness of the bounds (0 = no stickiness, 1 = strong stickiness)
+    }).setView([0, 0], 2);
+
+    // Add the tile layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      minZoom: 0.3,  // Set a minimum zoom level to prevent zooming too far in
+    }).addTo(map);
+
+    
+    const countryOutlines = {};
+
+    async function fetchCountryGeoJSON(countryName) {
+      try {
+        const response = await fetch(`../assets/${countryName}.geojson`);
+        const geojson = await response.json();
+        return geojson;
+      } catch (error) {
+        console.error(`Error fetching GeoJSON for ${countryName}:`, error);
+        return null;
+      }
+    }
+
+    document.getElementById('country-search-input').addEventListener('input', function(e) {
+  var searchText = e.target.value.toLowerCase();
+  var listItems = document.querySelectorAll('#country-list li');
+
+  for (var i = 0; i < listItems.length; i++) {
+    var currentListItem = listItems[i];
+    var textValue = currentListItem.textContent || currentListItem.innerText;
+
+    if (textValue.toLowerCase().indexOf(searchText) > -1) {
+      currentListItem.style.display = "";
+    } else {
+      currentListItem.style.display = "none";
+    }
+  }
+});
+
+
+    async function suggestCountries() {
+      const countryList = document.getElementById("country-list");
+      countryList.innerHTML = "";
+
+      for (const countryFileName in countryMapping) {
+        const displayName = countryMapping[countryFileName];
+        const li = document.createElement("li");
+        const state = getSavedCountryState(countryFileName);
+        li.innerHTML = `
+          <label>
+            <input type="checkbox" class="country-checkbox" data-country="${countryFileName}" ${state.checked ? 'checked' : ''}>
+            ${displayName}
+          </label>
+        `;
+        countryList.appendChild(li);
+
+        const checkbox = li.querySelector(`input[data-country="${countryFileName}"]`);
+
+        checkbox.addEventListener("change", async () => {
+          const geojson = await fetchCountryGeoJSON(countryFileName);
+          toggleCountryHighlight(countryFileName, checkbox.checked, geojson);
+        });
+
+        if (state.checked) {
+          const geojson = await fetchCountryGeoJSON(countryFileName);
+          toggleCountryHighlight(countryFileName, true, geojson);
+        }
+      }
+    }
+
+    function toggleCountryHighlight(countryFileName, checked, geojson) {
+      if (checked) {
+        if (geojson) {
+          const polygon = L.geoJSON(geojson, { "color": "black", "fillColor": "gold", "fillOpacity": 2, "weight": 0.5}).addTo(map);
+          map.fitBounds(polygon.getBounds());
+          countryOutlines[countryFileName] = polygon;
+        }
+      } else {
+        const polygon = countryOutlines[countryFileName];
+        if (polygon) {
+          map.removeLayer(polygon);
+          delete countryOutlines[countryFileName];
+        }
+      }
+
+      saveCountryState(countryFileName, { checked, highlighted: Boolean(countryOutlines[countryFileName]) });
+    }
+
+    function saveCountryState(countryFileName, state) {
+      const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+      savedCountries[countryFileName] = state;
+      localStorage.setItem('selectedCountries', JSON.stringify(savedCountries));
+    }
+
+    function getSavedCountryState(countryFileName) {
+      const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+      return savedCountries[countryFileName] || { checked: false, highlighted: false };
+    }
+
+    suggestCountries();
+  </script>
 </body>
+
 </html>
