@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    #main-nav {
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+      background-color: #3079ab;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    #main-nav a {
+      text-decoration: none;
+      color: white;
+      background-color: #26597b;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 0 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    #main-nav a:hover {
+      background-color: #1a4668;
+    }
+
+    h1 {
+      color: #26597b;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+
+    #color-form {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin: 20px;
+    }
+
+    label {
+      font-size: 1.1em;
+      color: #26597b;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    select {
+      font-size: 1em;
+      padding: 10px;
+      border-radius: 5px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+
+    button {
+      background-color: #39a7da;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    button:hover {
+      background-color: #3079ab;
+    }
+
+  </style>
+</head>
+<body>
+
+  <nav id="main-nav">
+    <a href="settings.html">Settings</a>
+    <a href="index.html">Home</a>
+    <a href="statistics.html">Statistics</a>
+  </nav>
+
+  <h1>Map Customization</h1>
+  <div id="color-form-container">
+    <form id="color-form">
+      <label for="map-color">Choose map highlight color:</label>
+      <select name="map-color" id="map-color">
+        <option value="green">Green</option>
+        <option value="blue">Blue</option>
+        <option value="red">Red</option>
+        <option value="yellow">Yellow</option>
+        <!-- Add more colors as needed -->
+      </select>
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('color-form');
+      const colorSelect = document.getElementById('map-color');
+
+      // Load saved color preference
+      const savedColor = localStorage.getItem('mapHighlightColor');
+      if (savedColor) {
+          colorSelect.value = savedColor;
+      }
+
+      form.addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent the form from submitting the traditional way
+          const selectedColor = colorSelect.value;
+          localStorage.setItem('mapHighlightColor', selectedColor); // Save the preference
+      });
+    });
+  </script>
+
+</body>
+</html>

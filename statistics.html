@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visited Areas Statistics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        #main-nav {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+            background-color: #3079ab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+        }
+
+        #main-nav a {
+            text-decoration: none;
+            color: white;
+            background-color: #26597b;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 0 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        #main-nav a:hover {
+            background-color: #1a4668;
+        }
+
+        .dashboard {
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: auto;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .clear-btn {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .clear-btn:hover {
+            background-color: #cc0000;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        /* Simple progress bar */
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 13px;
+            padding: 3px;
+            width: 50%;
+            margin: 20px auto;
+        }
+
+        .progress-bar {
+            background: #3079ab;
+            width: 0%; /* Dynamic width */
+            height: 20px;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav id="main-nav">
+        <a href="settings.html">Settings</a>
+        <a href="index.html">Home</a>
+        <a href="statistics.html">Statistics</a>
+    </nav>
+    <h1>Visited Areas Statistics</h1>
+    <div class="dashboard" id="dashboard">
+        <!-- Dashboard content will be dynamically added here -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text"></div>
+    </div>
+    <ul id="visited-areas-list">
+        <!-- Visited areas will be dynamically added here -->
+    </ul>
+    <a href="#" class="clear-btn" onclick="clearLocalStorage()">Clear Visited Areas</a>
+
+    <script>
+        function clearLocalStorage() {
+        const allCountries = {
+            "Edinburgh": { checked: false },
+            "Aberdeen": { checked: false },
+            "Highlands": { checked: false },
+            "Skye": { checked: false },
+            "Moray": { checked: false },
+            "Glasgow": { checked: false },
+            "Aberdeenshire": { checked: false },
+            "Fife": { checked: false }
+            // Add all other areas here with checked: false
+        };
+        localStorage.setItem('selectedCountries', JSON.stringify(allCountries));
+        location.reload(); // Reload the page to reset the data
+    }
+
+        const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+        const totalAreas = Object.keys(savedCountries).length;
+        const visitedAreas = Object.keys(savedCountries).filter(country => savedCountries[country].checked).length;
+
+        // Display dashboard statistics
+        const dashboard = document.getElementById('dashboard');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const percentage = totalAreas > 0 ? Math.round((visitedAreas / totalAreas) * 100) : 0;
+        progressBar.style.width = `${percentage}%`;
+        progressText.textContent = `You have visited ${visitedAreas} out of ${totalAreas} areas (${percentage}%)`;
+
+        // Display the list of checked countries
+        const ul = document.getElementById('visited-areas-list');
+        if (visitedAreas > 0) {
+            ul.innerHTML = `<p>You have visited these areas:</p>`;
+            Object.keys(savedCountries).forEach(country => {
+                if (savedCountries[country].checked) {
+                    const li = document.createElement('li');
+                    li.textContent = country;
+                    ul.appendChild(li);
+                }
+            });
+        } else {
+            ul.innerHTML = `<p>No areas visited yet.</p>`;
+        }
+    </script>
+</body>
+</html>

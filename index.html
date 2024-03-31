@@ -1,59 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Countries Been</title>
+  <title>Scottish Regions Visited</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-  
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f9f9f9;
+    }
+    
+    #main-nav {
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+      background-color: #3079ab;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
 
-  #mapid {
-    height: 50vh; /* Fixed height */
-    width: 100%;
-    position: fixed; /* Optional: Makes the map stay in the same position */
-    top: 0; /* Adjust as needed */
-    left: 0; /* Adjust as needed */
-  }
+    #main-nav a {
+      text-decoration: none;
+      color: white;
+      background-color: #26597b;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 0 10px;
+      transition: background-color 0.3s ease;
+    }
 
-  
+    #main-nav a:hover {
+      background-color: #1a4668;
+    }
 
-  /* Style for the country list container */
+    #mapid {
+      height: 50vh;
+      width: calc(100% - 40px);
+      margin: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
     #city-search {
       width: 100%;
-      background-color: #f0f0f0;
+      background-color: #3079ab;
       padding: 10px;
       text-align: center;
-      margin-top: 50vh; /* Adjust this to the height of your map */
-      max-height: 50vh; /* Maximum height */
-      overflow-y: auto; /* Makes it scrollable */
+      color: #FFFFFF;
     }
 
-    #country-search-input {
-      width: 50%; /* Reduced from 95% to 50% */
-      padding: 5px; /* Reduced padding */
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.5em;
+    }
+
+        /* Custom Checkbox Styles */
+    .country-checkbox {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-color: #fff;
+      border: 2px solid #141719;
       border-radius: 4px;
+      display: inline-block;
+      width: 1.2em;
+      height: 1.2em;
+      cursor: pointer;
+      position: relative;
+      outline: none; /* Removes the default focus outline */
+      vertical-align: middle; /* Aligns the checkbox vertically with the text */
     }
 
-    #search-bar-container {
-    position: fixed; /* Fixed position within the viewport */
-    top: 0; /* Align to the top of the viewport */
-    left: 0; /* Align to the left of the viewport */
-    width: 100%; /* Full width */
-    z-index: 1000; /* Ensure it's above other elements */
-  }
+    /* When the checkbox is checked, add a blue background */
+    .country-checkbox:checked {
+      background-color: #26597b;
+    }
 
-
-
-    #country-list {
-      list-style: none;
-      padding: 0;
-      margin-top: 10px;
+    /* Custom checkmark using a pseudo-element */
+    .country-checkbox:checked::after {
+      content: '✔';
+      color: white;
+      position: absolute;
+      left: 0.15em;
+      top: -0.15em;
+      font-size: 1.2em;
     }
 
     #country-list li {
@@ -61,144 +99,616 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 5px; /* Add some padding around the list items */
     }
 
-    .country-checkbox {
-      margin-right: 10px;
-    }
-
-    /* Set a fixed width for the label to ensure checkbox alignment */
     label {
-      display: inline-block;
-      width: 200px; /* Adjust the width as needed */
-      text-align: left; /* Align text to the left within the label */
+      display: flex;
+      align-items: center;
+      cursor: pointer; /* Indicates an interactive element */
+    }
+
+
+    @media (max-width: 768px) {
+      #main-nav a {
+        padding: 8px 15px;
+        font-size: 0.9em;
+      }
+
+      #mapid {
+        width: calc(100% - 20px);
+        margin: 10px;
+      }
     }
   </style>
-</head>
-
-<body>
-  <div id="mapid"></div>
-  <div id="city-search">
-    <div id="search-header">
-      <h1>Countries Been</h1>
-      <input type="text" id="country-search-input" placeholder="Search for a country...">
+  </head>
+  <body>
+    <nav id="main-nav">
+      <a href="settings.html">Settings</a>
+      <a href="index.html">Home</a>
+      <a href="statistics.html">Statistics</a>
+    </nav>
+    <div id="mapid"></div>
+    <div id="city-search">
+      <h1>Scottish Regions Visited</h1>
+      <div id="list-container">
+        <ul id="country-list"></ul>
+      </div>
     </div>
-    <ul id="country-list"></ul>
-  </div>
-  
-  <script>
-    const countryMapping = {
-      "Australia": "🇦🇺 Australia"
-    };
+    <script>
+      function getSavedColor() {
+      return localStorage.getItem('mapHighlightColor') || 'green'; // Default to green
+     }
+      const countryData = {
+          "Edinburgh": [
+            [55.976782, -3.299074], [55.944991, -3.313078], [55.914033, -3.292710], [55.898061, -3.217372], [55.899265, -3.114782], [55.950405, -3.098846], [55.990403, -3.180461], [55.979642, -3.298012]
+        ],
+        "Aberdeen": [[57.21209, -2.05985],
+[57.21879, -2.07805],
+[57.22269, -2.09488],
+[57.22697, -2.12887],
+[57.2173, -2.13265],
+[57.21581, -2.13712],
+[57.21228, -2.14364],
+[57.21284, -2.1615],
+[57.21507, -2.17833],
+[57.22943, -2.20754],
+[57.23242, -2.26865],
+[57.2168, -2.28239],
+[57.20006, -2.29338],
+[57.18256, -2.27552],
+[57.15748, -2.25537],
+[57.13716, -2.27838],
+[57.12989, -2.27872],
+[57.12553, -2.31191],
+[57.1356, -2.34762],
+[57.11136, -2.3593],
+[57.10315, -2.3332],
+[57.09531, -2.26039],
+[57.10203, -2.21369],
+[57.11434, -2.1663],
+[57.11621, -2.13264],
+[57.10025, -2.11941],
+[57.09091, -2.11906],
+[57.08662, -2.08609],
+[57.10228, -2.07378],
+[57.12466, -2.0518],
+[57.14069, -2.04493],
+[57.17746, -2.06371],
+],
+        "Highlands": [[58.6447, -3.03524],
+[58.6447, -3.06683],
+[58.6472, -3.0998],
+[58.64327, -3.13002],
+[58.63898, -3.16299],
+[58.65936, -3.19046],
+[58.65614, -3.22069],
+[58.65471, -3.25434],
+[58.65006, -3.29143],
+[58.65078, -3.33676],
+[58.67436, -3.36698],
+[58.659, -3.41163],
+[58.63862, -3.41506],
+[58.62074, -3.37248],
+[58.60356, -3.3608],
+[58.60213, -3.38278],
+[58.61072, -3.42262],
+[58.6137, -3.47024],
+[58.61191, -3.49703],
+[58.62444, -3.52999],
+[58.62301, -3.57395],
+[58.62551, -3.62959],
+[58.62086, -3.66324],
+[58.60082, -3.72345],
+[58.57969, -3.77291],
+[58.57432, -3.8361],
+[58.57575, -3.90135],
+[58.57719, -3.98239],
+[58.60189, -4.01674],
+[58.59867, -4.03047],
+[58.59187, -4.05039],
+[58.56644, -4.07374],
+[58.5736, -4.11633],
+[58.56608, -4.16303],
+[58.55927, -4.21798],
+[58.54828, -4.22959],
+[58.54918, -4.26702],
+[58.55509, -4.29278],
+[58.56405, -4.32094],
+[58.56602, -4.35391],
+[58.56298, -4.36947],
+[58.56935, -4.42615],
+[58.58941, -4.49484],
+[58.58941, -4.58825],
+[58.58297, -4.70227],
+[58.61614, -4.75721],
+[58.62544, -4.84925],
+[58.62902, -4.9564],
+[58.63188, -5.00997],
+[58.57604, -5.04431],
+[58.52872, -5.13223],
+[58.47655, -5.16153],
+[58.41975, -5.16428],
+[58.38735, -5.22747],
+[58.33689, -5.2],
+[58.28709, -5.22747],
+[58.26469, -5.19176],
+[58.26541, -5.23297],
+[58.27047, -5.27692],
+[58.26324, -5.33737],
+[58.26035, -5.39918],
+[58.23359, -5.40697],
+[58.19523, -5.37812],
+[58.1561, -5.33553],
+[58.12709, -5.3218],
+[58.10241, -5.31493],
+[58.0937, -5.34378],
+[58.11112, -5.39048],
+[58.11112, -5.43993],
+[58.08716, -5.46466],
+[58.04718, -5.48114],
+[58.01517, -5.48252],
+[57.9941, -5.41051],
+[57.97224, -5.33359],
+[57.94454, -5.25941],
+[57.92265, -5.30336],
+[57.94308, -5.38579],
+[57.91973, -5.44348],
+[57.93724, -5.54788],
+[57.92557, -5.63305],
+[57.90611, -5.67701],
+[57.88273, -5.67975],
+[57.87104, -5.75668],
+[57.86373, -5.81712],
+[57.83156, -5.83086],
+[57.7847, -5.83635],
+[57.75099, -5.8391],
+[57.72018, -5.83635],
+[57.71871, -5.77866],
+[57.7011, -5.7924],
+[57.67318, -5.81987],
+[57.63937, -5.82811],
+[57.60788, -5.77669],
+[57.57547, -5.74372],
+[57.58726, -5.82614],
+[57.54009, -5.88109],
+[57.45739, -5.89208],
+[57.38932, -5.85361],
+[57.3241, -5.80965],
+[57.30629, -5.74372],
+[57.26172, -5.67778],
+[57.22306, -5.6558],
+[57.13965, -5.73822],
+[57.09389, -5.78218],
+[57.03113, -5.80965],
+[56.95927, -5.8646],
+[56.90829, -5.95252],
+[56.86625, -5.94153],
+[56.85723, -5.83713],
+[56.80009, -5.91955],
+[56.773, -6.13934],
+[56.72779, -6.24374],
+[56.66139, -6.22725],
+[56.56529, -5.94606],
+[56.50619, -5.72077],
+[56.49832, -5.67969],
+[56.44256, -5.59588],
+[56.4038, -5.47774],
+[56.44712, -5.38021],
+[56.43269, -5.23735],
+[56.38783, -5.07113],
+[56.3967, -4.98001],
+[56.39975, -4.86874],
+[56.4342, -4.73504],
+[56.57389, -4.69637],
+[56.67972, -4.57548],
+[56.80094, -4.50887],
+[56.77686, -4.44843],
+[56.82614, -4.38043],
+[56.8527, -4.29526],
+[56.86284, -4.22658],
+[56.91113, -4.17438],
+[56.89613, -4.05143],
+[56.89463, -3.98206],
+[56.94638, -3.94497],
+[56.92614, -3.89415],
+[56.93463, -3.80211],
+[57.00095, -3.75121],
+[57.066, -3.75396],
+[57.1108, -3.63445],
+[57.15532, -3.54824],
+[57.17581, -3.46994],
+[57.20411, -3.43216],
+[57.26661, -3.45],
+[57.29669, -3.49395],
+[57.37247, -3.39528],
+[57.4217, -3.41245],
+[57.45893, -3.50632],
+[57.4471, -3.60934],
+[57.43576, -3.68719],
+[57.49488, -3.68169],
+[57.58828, -3.97841],
+[57.63512, -3.76126],
+[57.58828, -4.05534],
+[57.85247, -3.74763],
+[57.84077, -3.885],
+[57.89047, -3.9894],
+[58.00909, -3.80807],
+[58.13119, -3.59927],
+[58.27599, -3.363],
+[58.31932, -3.16519],
+[58.46049, -3.0498],
+[58.60586, -3.03515]
+], 
+'Moray': [[57.6926, -2.82761],
+[57.71094, -2.85233],
+[57.69847, -2.90176],
+[57.67792, -2.97455],
+[57.6647, -3.02536],
+[57.67645, -3.10089],
+[57.68526, -3.1572],
+[57.6992, -3.2135],
+[57.72781, -3.28354],
+[57.72072, -3.30826],
+[57.72732, -3.33298],
+[57.71412, -3.41675],
+[57.70678, -3.45795],
+[57.70678, -3.49915],
+[57.69064, -3.49365],
+[57.67596, -3.50327],
+[57.67082, -3.52661],
+[57.66715, -3.54996],
+[57.66935, -3.59665],
+[57.67229, -3.63235],
+[57.66911, -3.65341],
+[57.66225, -3.68591],
+[57.65785, -3.71475],
+[57.6527, -3.74084],
+[57.64462, -3.76144],
+[57.61816, -3.74634],
+[57.59315, -3.73901],
+[57.56665, -3.72253],
+[57.54086, -3.71567],
+[57.52465, -3.71567],
+[57.51801, -3.68683],
+[57.49146, -3.70605],
+[57.45602, -3.69507],
+[57.43607, -3.68958],
+[57.42942, -3.60992],
+[57.43163, -3.65387],
+[57.44641, -3.58109],
+[57.46266, -3.50967],
+[57.45306, -3.49319],
+[57.42252, -3.44696],
+[57.42326, -3.40576],
+[57.38701, -3.39066],
+[57.36629, -3.39752],
+[57.34925, -3.42224],
+[57.32924, -3.45108],
+[57.31887, -3.48129],
+[57.29958, -3.49091],
+[57.28697, -3.46481],
+[57.27138, -3.40988],
+[57.25876, -3.35907],
+[57.26099, -3.3371],
+[57.29958, -3.30826],
+[57.33219, -3.31384],
+[57.35518, -3.29873],
+[57.3726, -3.25409],
+[57.37556, -3.22867],
+[57.41826, -3.16136],
+[57.45277, -3.12313],
+[57.48223, -3.04288],
+[57.53537, -2.97831],
+[57.55971, -2.91238],
+[57.59139, -2.85606],
+[57.65688, -2.81576]
+], 'Glasgow': [[55.89009, -4.38816],
+[55.89953, -4.37751],
+[55.90858, -4.38576],
+[55.91782, -4.38713],
+[55.9209, -4.37992],
+[55.92144, -4.36591],
+[55.91932, -4.34978],
+[55.91528, -4.34806],
+[55.90816, -4.34806],
+[55.90425, -4.33776],
+[55.89886, -4.32506],
+[55.89463, -4.31613],
+[55.89694, -4.30343],
+[55.90791, -4.30068],
+[55.91502, -4.29279],
+[55.92849, -4.29794],
+[55.92887, -4.27287],
+[55.91926, -4.26601],
+[55.91348, -4.25674],
+[55.90444, -4.24712],
+[55.9056, -4.23888],
+[55.90848, -4.2327],
+[55.90771, -4.21451],
+[55.91406, -4.1946],
+[55.90733, -4.19219],
+[55.90386, -4.17915],
+[55.89828, -4.17331],
+[55.89732, -4.16198],
+[55.89058, -4.16198],
+[55.88757, -4.17045],
+[55.8841, -4.16633],
+[55.8841, -4.12925],
+[55.88449, -4.10316],
+[55.88102, -4.08599],
+[55.86992, -4.07958],
+[55.86163, -4.07409],
+[55.85643, -4.07409],
+[55.85277, -4.08885],
+[55.8441, -4.07409],
+[55.84449, -4.08611],
+[55.84275, -4.09812],
+[55.8389, -4.10808],
+[55.83138, -4.1122],
+[55.82579, -4.11185],
+[55.83273, -4.12936],
+[55.83093, -4.13772],
+[55.82784, -4.14733],
+[55.82823, -4.15763],
+[55.82514, -4.1645],
+[55.82399, -4.17171],
+[55.8344, -4.18166],
+[55.83671, -4.19093],
+[55.8317, -4.19368],
+[55.84365, -4.20364],
+[55.83922, -4.20261],
+[55.83787, -4.20707],
+[55.83498, -4.21874],
+[55.83337, -4.22584],
+[55.82909, -4.22945],
+[55.82446, -4.22979],
+[55.82292, -4.23563],
+[55.81925, -4.2346],
+[55.81416, -4.21626],
+[55.80104, -4.21076],
+[55.78831, -4.22724],
+[55.7802, -4.22587],
+[55.7856, -4.25471],
+[55.81069, -4.26158],
+[55.81069, -4.28767],
+[55.80953, -4.31925],
+[55.7968, -4.32887],
+[55.79744, -4.35061],
+[55.80207, -4.38563],
+[55.82059, -4.37327],
+[55.84681, -4.36915],
+[55.87403, -4.35313]
+], 'Aberdeenshire': [[57.6728, -2.79767],
+[57.69558, -2.80316],
+[57.70072, -2.78599],
+[57.69264, -2.77363],
+[57.6919, -2.74959],
+[57.68382, -2.74409],
+[57.6919, -2.71662],
+[57.68566, -2.68365],
+[57.68967, -2.6645],
+[57.68159, -2.60405],
+[57.68342, -2.57109],
+[57.67461, -2.55669],
+[57.67314, -2.52304],
+[57.66653, -2.51205],
+[57.67388, -2.49419],
+[57.67265, -2.42253],
+[57.67081, -2.38063],
+[57.67596, -2.35865],
+[57.67008, -2.34835],
+[57.69138, -2.31538],
+[57.69395, -2.29684],
+[57.68073, -2.2467],
+[57.67302, -2.18214],
+[57.70056, -2.11826],
+[57.69921, -2.00051],
+[57.68342, -1.99501],
+[57.6757, -1.9538],
+[57.67607, -1.92702],
+[57.64558, -1.88859],
+[57.62168, -1.84257],
+[57.61211, -1.81441],
+[57.58605, -1.82724],
+[57.56689, -1.82175],
+[57.55215, -1.79977],
+[57.53347, -1.80618],
+[57.52129, -1.79656],
+[57.50321, -1.76359],
+[57.48697, -1.78351],
+[57.47034, -1.77252],
+[57.44694, -1.79839],
+[57.4266, -1.8135],
+[57.40958, -1.838],
+[57.38774, -1.85792],
+[57.35724, -1.91126],
+[57.32523, -1.96415],
+[57.29591, -1.99437],
+[57.26348, -2.02414],
+[57.22072, -2.05504],
+[57.21489, -2.06168],
+[57.22754, -2.12831],
+[57.21043, -2.14685],
+[57.21638, -2.17776],
+[57.22977, -2.24576],
+[57.22531, -2.27598],
+[57.20596, -2.28765],
+[57.18363, -2.28147],
+[57.1583, -2.25675],
+[57.13308, -2.27506],
+[57.12525, -2.31696],
+[57.12487, -2.35061],
+[57.11294, -2.35474],
+[57.10361, -2.30528],
+[57.09614, -2.24896],
+[57.10809, -2.18715],
+[57.11741, -2.13014],
+[57.09191, -2.11777],
+[57.08743, -2.08893],
+[57.05307, -2.11159],
+[56.98092, -2.19795],
+[56.90296, -2.2007],
+[56.83386, -2.28862],
+[56.79325, -2.33315],
+[56.77594, -2.38055],
+[56.74845, -2.4245],
+[56.76314, -2.48586],
+[56.78498, -2.53532],
+[56.78648, -2.61224],
+[56.84527, -2.67061],
+[56.88958, -2.66099],
+[56.94092, -2.7393],
+[56.97688, -2.82585],
+[56.98165, -2.9073],
+[56.96817, -2.97255],
+[56.96293, -3.0639],
+[56.92432, -3.10237],
+[56.89214, -3.10979],
+[56.9124, -3.2032],
+[56.92215, -3.28288],
+[56.88313, -3.34881],
+[56.88012, -3.49897],
+[56.92064, -3.58414],
+[56.92914, -3.77188],
+[57.00629, -3.75814],
+[57.07806, -3.73479],
+[57.09474, -3.50996],
+[57.11414, -3.33825],
+[57.18495, -3.35886],
+[57.25489, -3.205],
+[57.27817, -3.06672],
+[57.28337, -2.98018],
+[57.31678, -2.95682],
+[57.37561, -2.97185],
+[57.41264, -3.02268],
+[57.4617, -3.00734],
+[57.49494, -2.9414],
+[57.52889, -2.87753],
+[57.51094, -2.78755],
+[57.51611, -2.70326],
+[57.56552, -2.73074],
+[57.60162, -2.8008],
+[57.65091, -2.77744]
+], 'Fife': [[56.44784, -2.93639],
+[56.41443, -3.02703],
+[56.381, -3.15337],
+[56.35367, -3.24059],
+[56.32932, -3.27912],
+[56.30798, -3.29561],
+[56.28816, -3.3011],
+[56.28739, -3.35055],
+[56.26603, -3.39039],
+[56.24084, -3.36841],
+[56.23779, -3.32033],
+[56.2248, -3.27912],
+[56.19805, -3.27088],
+[56.16823, -3.29835],
+[56.14144, -3.37528],
+[56.15216, -3.46594],
+[56.15752, -3.58133],
+[56.12919, -3.68299],
+[56.08628, -3.71458],
+[56.04792, -3.68985],
+[56.03385, -3.48701],
+[56.01004, -3.3936],
+[56.05764, -3.26722],
+[56.07145, -3.16282],
+[56.1251, -3.14084],
+[56.1695, -3.04285],
+[56.20697, -2.96592],
+[56.20621, -2.90548],
+[56.1848, -2.84778],
+[56.18709, -2.80108],
+[56.21512, -2.71179],
+[56.25255, -2.63624],
+[56.2846, -2.58953],
+[56.32271, -2.66096],
+[56.341, -2.78185],
+[56.3958, -2.80795],
+[56.44216, -2.77361],
+[56.45127, -2.87251],
+]
+ 
+      };
+  const countries = Object.keys(countryData);
 
-    const southWest = L.latLng(-90, -180); // Bottom-left corner of the world
-    const northEast = L.latLng(90, 180);   // Top-right corner of the world
-    const bounds = L.latLngBounds(southWest, northEast);
+      const scotlandCenter = [56.4907, -4.2026]; 
+      const zoomLevel = 7;
+      const map = L.map("mapid").setView(scotlandCenter, zoomLevel);
 
-    // Create the map and set the maxBounds option
-    const map = L.map("mapid", {
-      maxBounds: bounds,  // Set the maximum bounds
-      maxBoundsViscosity: 1,  // Optional: Adjust the stickiness of the bounds (0 = no stickiness, 1 = strong stickiness)
-    }).setView([0, 0], 2);
+      const tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 100,
+        minZoom: 5,
+      });
+      tileLayer.addTo(map);
+      
+      const countryOutlines = {};
 
-    // Add the tile layer
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
-      minZoom: 0.3,  // Set a minimum zoom level to prevent zooming too far in
-    }).addTo(map);
+      function suggestCountries() {
+        const countryList = document.getElementById("country-list");
+        countryList.innerHTML = "";
+        countries.forEach(country => {
+          const li = document.createElement("li");
+          const state = getSavedCountryState(country);
+          li.innerHTML = `
+            <label>
+              <input type="checkbox" class="country-checkbox" data-country="${country}" ${state.checked ? 'checked' : ''} onchange="toggleCountryHighlight('${country}')">
+              ${country}
+            </label>
+          `;
+          countryList.appendChild(li);
 
-    
-    const countryOutlines = {};
-
-    async function fetchCountryGeoJSON(countryName) {
-      try {
-        const response = await fetch(`../assets/${countryName}.geojson`);
-        const geojson = await response.json();
-        return geojson;
-      } catch (error) {
-        console.error(`Error fetching GeoJSON for ${countryName}:`, error);
-        return null;
-      }
-    }
-
-    document.getElementById('country-search-input').addEventListener('input', function(e) {
-  var searchText = e.target.value.toLowerCase();
-  var listItems = document.querySelectorAll('#country-list li');
-
-  for (var i = 0; i < listItems.length; i++) {
-    var currentListItem = listItems[i];
-    var textValue = currentListItem.textContent || currentListItem.innerText;
-
-    if (textValue.toLowerCase().indexOf(searchText) > -1) {
-      currentListItem.style.display = "";
-    } else {
-      currentListItem.style.display = "none";
-    }
-  }
-});
-
-
-    async function suggestCountries() {
-      const countryList = document.getElementById("country-list");
-      countryList.innerHTML = "";
-
-      for (const countryFileName in countryMapping) {
-        const displayName = countryMapping[countryFileName];
-        const li = document.createElement("li");
-        const state = getSavedCountryState(countryFileName);
-        li.innerHTML = `
-          <label>
-            <input type="checkbox" class="country-checkbox" data-country="${countryFileName}" ${state.checked ? 'checked' : ''}>
-            ${displayName}
-          </label>
-        `;
-        countryList.appendChild(li);
-
-        const checkbox = li.querySelector(`input[data-country="${countryFileName}"]`);
-
-        checkbox.addEventListener("change", async () => {
-          const geojson = await fetchCountryGeoJSON(countryFileName);
-          toggleCountryHighlight(countryFileName, checkbox.checked, geojson);
+          if (state.checked) {
+            // If the checkbox is checked, highlight the country
+            toggleCountryHighlight(country);
+          }
         });
-
-        if (state.checked) {
-          const geojson = await fetchCountryGeoJSON(countryFileName);
-          toggleCountryHighlight(countryFileName, true, geojson);
-        }
       }
-    }
 
-    function toggleCountryHighlight(countryFileName, checked, geojson) {
-      if (checked) {
-        if (geojson) {
-          const polygon = L.geoJSON(geojson, { "color": "black", "fillColor": "gold", "fillOpacity": 2, "weight": 0.5}).addTo(map);
+      function toggleCountryHighlight(countryName) {
+      const checkbox = document.querySelector(`input[data-country="${countryName}"]`);
+      const outlines = countryOutlines[countryName];
+      const highlightColor = getSavedColor(); // Get the saved color
+
+      if (checkbox.checked) {
+        if (!outlines) {
+          const polygonStyle = {
+            color: highlightColor, 
+            fillColor: highlightColor, 
+            fillOpacity: 0.5
+          };
+          // Use the saved color for the polygon
+          const polygon = L.polygon(countryData[countryName], polygonStyle).addTo(map);
+          const outline = L.polyline(countryData[countryName], { color: highlightColor, weight: 0 }).addTo(map);
           map.fitBounds(polygon.getBounds());
-          countryOutlines[countryFileName] = polygon;
+          countryOutlines[countryName] = { polygon, outline };
         }
       } else {
-        const polygon = countryOutlines[countryFileName];
-        if (polygon) {
-          map.removeLayer(polygon);
-          delete countryOutlines[countryFileName];
+        if (outlines) {
+          map.removeLayer(outlines.polygon);
+          map.removeLayer(outlines.outline);
+          delete countryOutlines[countryName];
         }
       }
 
-      saveCountryState(countryFileName, { checked, highlighted: Boolean(countryOutlines[countryFileName]) });
+      saveCountryState(countryName, { checked: checkbox.checked, highlighted: Boolean(outlines) });
     }
+       
 
-    function saveCountryState(countryFileName, state) {
-      const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-      savedCountries[countryFileName] = state;
-      localStorage.setItem('selectedCountries', JSON.stringify(savedCountries));
-    }
+      function saveCountryState(countryName, state) {
+        const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+        savedCountries[countryName] = state;
+        localStorage.setItem('selectedCountries', JSON.stringify(savedCountries));
+      }
 
-    function getSavedCountryState(countryFileName) {
-      const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-      return savedCountries[countryFileName] || { checked: false, highlighted: false };
-    }
+      function getSavedCountryState(countryName) {
+        const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+        return savedCountries[countryName] || { checked: false, highlighted: false };
+      }
 
-    suggestCountries();
-  </script>
-</body>
-
+      // Initial suggestions on page load
+      suggestCountries();
+    </script>
+    </body>
 </html>
