@@ -135,7 +135,7 @@
     }
 
         const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-        const totalAreas = Object.keys(savedCountries).length;
+        const totalAreas = 12;
         const visitedAreas = Object.keys(savedCountries).filter(country => savedCountries[country].checked).length;
 
         // Display dashboard statistics
