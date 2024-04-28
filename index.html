@@ -6,9 +6,7 @@
   <title>Scottish Regions Visited</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
@@ -62,7 +60,6 @@
       margin-bottom: 0.5em;
     }
 
-        /* Custom Checkbox Styles */
     .country-checkbox {
       -webkit-appearance: none;
       -moz-appearance: none;
@@ -75,16 +72,14 @@
       height: 1.2em;
       cursor: pointer;
       position: relative;
-      outline: none; /* Removes the default focus outline */
-      vertical-align: middle; /* Aligns the checkbox vertically with the text */
+      outline: none; 
+      vertical-align: middle; 
     }
 
-    /* When the checkbox is checked, add a blue background */
     .country-checkbox:checked {
       background-color: #26597b;
     }
 
-    /* Custom checkmark using a pseudo-element */
     .country-checkbox:checked::after {
       content: '✔';
       color: white;
@@ -99,13 +94,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 5px; /* Add some padding around the list items */
-    }
-
-    label {
-      display: flex;
-      align-items: center;
-      cursor: pointer; /* Indicates an interactive element */
+      padding: 5px; 
     }
 
 
@@ -121,25 +110,23 @@
       }
     }
   </style>
-  </head>
-  <body>
-    <nav id="main-nav">
-      <a href="settings.html">Settings</a>
-      <a href="index.html">Home</a>
-      <a href="statistics.html">Statistics</a>
-    </nav>
-    <div id="mapid"></div>
-    <div id="city-search">
-      <h1>Scottish Regions Visited</h1>
-      <div id="list-container">
-        <ul id="country-list"></ul>
-      </div>
-    </div>
-    <script>
-      function getSavedColor() {
-      return localStorage.getItem('mapHighlightColor') || 'green'; // Default to green
-     }
-      const countryData = {
+</head>
+<body>
+  <nav id="main-nav">
+    <a href="settings.html">Settings</a>
+    <a href="index.html">Home</a>
+    <a href="statistics.html">Statistics</a>
+  </nav>
+  <div id="mapid"></div>
+  <div id="city-search">
+    <h1>Scottish Regions Visited</h1>
+    <ul id="country-list"></ul>
+  </div>
+  <script>
+    const map = L.map('mapid').setView([56.4907, -4.2026], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 100, minZoom: 5 }).addTo(map);
+
+    const countryData = {
           "Edinburgh": [
           [55.98295, -3.25553],
 [55.98521, -3.25613],
@@ -2186,89 +2173,186 @@
 [58.96073, -3.40423],
 [58.92671, -3.4372],
 [58.89265, -3.45918],
-[58.85713, -3.44819]]
-
- 
-      };
-  const countries = Object.keys(countryData);
-
-      const scotlandCenter = [56.4907, -4.2026]; 
-      const zoomLevel = 7;
-      const map = L.map("mapid").setView(scotlandCenter, zoomLevel);
-
-      const tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 100,
-        minZoom: 5,
-      });
-      tileLayer.addTo(map);
+[58.85713, -3.44819]], 
+'Lewis and Harris': [
+[58.29597, -6.82003],
+[58.33166, -6.72937],
+[58.35488, -6.62294],
+[58.3736, -6.55426],
+[58.43257, -6.47458],
+[58.47422, -6.36469],
+[58.51726, -6.29051],
+[58.53016, -6.2438],
+[58.47853, -6.17787],
+[58.44119, -6.15039],
+[58.37648, -6.1394],
+[58.33327, -6.1449],
+[58.27269, -6.12292],
+[58.22791, -6.0872],
+[58.18163, -6.14215],
+[58.14688, -6.22457],
+[58.10774, -6.31523],
+[58.0366, -6.31523],
+[57.9726, -6.3537],
+[57.90995, -6.42513],
+[57.79748, -6.68888],
+[57.7477, -6.76306],
+[57.70813, -6.92241],
+[57.71986, -7.05154],
+[57.72865, -7.14495],
+[57.81941, -7.20264],
+[57.95658, -7.19715],
+[58.10656, -7.16675],
+[58.21807, -7.12279],
+[58.25997, -7.03762]
+], 'Uist': [[56.75608, -7.61182],
+[56.85677, -7.48819],
+[56.98264, -7.30961],
+[57.07974, -7.16949],
+[57.25388, -7.10356],
+[57.45232, -7.08158],
+[57.63941, -7.02388],
+[57.73772, -7.12554],
+[57.74505, -7.28763],
+[57.71573, -7.50193],
+[57.62471, -7.58435],
+[57.55703, -7.56512],
+[57.49808, -7.48819],
+[57.38284, -7.50193],
+[57.2717, -7.50468],
+[57.13043, -7.53215],
+[57.03495, -7.57061],
+[56.93624, -7.62831],
+[56.86128, -7.67501],
+[56.78617, -7.71622]
+], 'Shetland': [[60.1847, -2.18267],
+[60.32907, -2.00135],
+[60.44572, -1.82551],
+[60.61589, -1.60023],
+[60.65358, -1.38044],
+[60.77712, -1.08372],
+[60.87347, -0.8969],
+[60.84406, -0.74854],
+[60.72883, -0.6771],
+[60.56196, -0.6826],
+[60.44031, -0.63864],
+[60.26377, -0.77601],
+[60.06163, -0.96283],
+[59.8417, -1.17163],
+[59.78096, -1.34197],
+[59.89406, -1.53429],
+[60.06437, -1.71562],
+[60.05615, -1.95739],
+[60.08354, -2.1607]
+], 'Arran': [[55.47817, -5.34942],
+[55.43147, -5.2931],
+[55.41978, -5.20381],
+[55.42368, -5.10215],
+[55.47505, -5.0527],
+[55.52559, -5.05682],
+[55.57916, -5.08567],
+[55.63808, -5.11314],
+[55.69769, -5.15298],
+[55.72553, -5.22166],
+[55.72784, -5.30409],
+[55.69769, -5.36315],
+[55.66441, -5.40437],
+[55.60708, -5.40162]
+], 'Jura': [[55.88758, -6.09847],
+[55.9737, -6.02979],
+[56.06116, -5.94736],
+[56.12547, -5.80999],
+[56.15453, -5.71384],
+[56.13312, -5.68361],
+[56.09945, -5.67262],
+[56.05962, -5.71658],
+[56.00134, -5.76054],
+[55.95218, -5.8045],
+[55.85832, -5.88967],
+[55.79972, -5.95561],
+[55.79972, -6.04627],
+[55.84445, -6.09572]
+], 'Islay': [[55.84291, -6.49409],
+[55.88142, -6.41442],
+[55.9122, -6.32376],
+[55.9322, -6.21111],
+[55.94604, -6.13419],
+[55.9122, -6.10671],
+[55.84136, -6.10122],
+[55.78275, -6.06275],
+[55.71322, -6.0133],
+[55.67918, -6.00781],
+[55.64202, -6.02704],
+[55.60172, -6.12045],
+[55.56913, -6.24133],
+[55.56758, -6.31826],
+[55.60327, -6.40068],
+[55.65596, -6.51882],
+[55.7395, -6.52157]
+], 'Bute': [[55.90747, -5.22167],
+[55.92516, -5.1832],
+[55.91747, -5.14611],
+[55.89593, -5.09529],
+[55.86744, -5.0582],
+[55.84973, -5.02248],
+[55.80578, -4.99776],
+[55.76256, -4.99089],
+[55.73011, -4.99501],
+[55.71388, -5.02111],
+[55.72393, -5.06507],
+[55.76642, -5.14474],
+[55.81504, -5.15573],
+[55.8582, -5.19557],
+[55.89593, -5.22579]
+]
       
-      const countryOutlines = {};
+    };
 
-      function suggestCountries() {
-        const countryList = document.getElementById("country-list");
-        countryList.innerHTML = "";
-        countries.forEach(country => {
-          const li = document.createElement("li");
-          const state = getSavedCountryState(country);
-          li.innerHTML = `
-            <label>
-              <input type="checkbox" class="country-checkbox" data-country="${country}" ${state.checked ? 'checked' : ''} onchange="toggleCountryHighlight('${country}')">
-              ${country}
-            </label>
-          `;
-          countryList.appendChild(li);
+    const countries = Object.keys(countryData);
+    const countryOutlines = {};
 
-          if (state.checked) {
-            // If the checkbox is checked, highlight the country
-            toggleCountryHighlight(country);
-          }
-        });
-      }
+    function suggestCountries() {
+      const countryList = document.getElementById("country-list");
+      countryList.innerHTML = "";
+      countries.forEach(country => {
+        const li = document.createElement("li");
+        const isChecked = getSavedCountryState(country).checked;
+        li.innerHTML = `<label><input type="checkbox" class="country-checkbox" data-country="${country}" ${isChecked ? 'checked' : ''} onchange="toggleCountryHighlight('${country}')">${country}</label>`;
+        countryList.appendChild(li);
+        if (isChecked) toggleCountryHighlight(country);
+      });
+    }
 
-      function toggleCountryHighlight(countryName) {
+    function toggleCountryHighlight(countryName) {
       const checkbox = document.querySelector(`input[data-country="${countryName}"]`);
-      const outlines = countryOutlines[countryName];
-      const highlightColor = getSavedColor(); // Get the saved color
-
+      const highlightColor = localStorage.getItem('mapHighlightColor') || 'green';
       if (checkbox.checked) {
-        if (!outlines) {
-          const polygonStyle = {
-            color: 'black',
-            fillColor: highlightColor, 
-            fillOpacity: 0.5,
-            weight: 1
-          };
-          // Use the saved color for the polygon
-          const polygon = L.polygon(countryData[countryName], polygonStyle).addTo(map);
-          const outline = L.polyline(countryData[countryName], { color: 'black', weight: 1}).addTo(map);
+        if (!countryOutlines[countryName]) {
+          const polygon = L.polygon(countryData[countryName], { color: 'black', fillColor: highlightColor, fillOpacity: 0.5, weight: 1 }).addTo(map);
+          countryOutlines[countryName] = polygon;
           map.fitBounds(polygon.getBounds());
-          countryOutlines[countryName] = { polygon, outline };
         }
       } else {
-        if (outlines) {
-          map.removeLayer(outlines.polygon);
-          map.removeLayer(outlines.outline);
+        if (countryOutlines[countryName]) {
+          map.removeLayer(countryOutlines[countryName]);
           delete countryOutlines[countryName];
         }
       }
-
-      saveCountryState(countryName, { checked: checkbox.checked, highlighted: Boolean(outlines) });
+      saveCountryState(countryName, { checked: checkbox.checked });
     }
-       
 
-      function saveCountryState(countryName, state) {
-        const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-        savedCountries[countryName] = state;
-        localStorage.setItem('selectedCountries', JSON.stringify(savedCountries));
-      }
+    function saveCountryState(countryName, state) {
+      const savedAreas = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+      savedAreas[countryName] = state;
+      localStorage.setItem('selectedCountries', JSON.stringify(savedAreas));
+    }
 
-      function getSavedCountryState(countryName) {
-        const savedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-        return savedCountries[countryName] || { checked: false, highlighted: false };
-      }
+    function getSavedCountryState(countryName) {
+      const savedAreas = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+      return savedAreas[countryName] || { checked: false };
+    }
 
-      // Initial suggestions on page load
-      suggestCountries();
-    </script>
-    </body>
+    suggestCountries();
+  </script>
+</body>
 </html>
