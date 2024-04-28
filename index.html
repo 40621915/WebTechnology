@@ -60,7 +60,7 @@
       margin-bottom: 0.5em;
     }
 
-    .country-checkbox {
+    .area-checkbox {
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
@@ -76,11 +76,11 @@
       vertical-align: middle; 
     }
 
-    .country-checkbox:checked {
+    .area-checkbox:checked {
       background-color: #26597b;
     }
 
-    .country-checkbox:checked::after {
+    .area-checkbox:checked::after {
       content: '✔';
       color: white;
       position: absolute;
@@ -89,7 +89,7 @@
       font-size: 1.2em;
     }
 
-    #country-list li {
+    #area-list li {
       margin-bottom: 5px;
       display: flex;
       align-items: center;
@@ -120,13 +120,13 @@
   <div id="mapid"></div>
   <div id="city-search">
     <h1>Scottish Regions Visited</h1>
-    <ul id="country-list"></ul>
+    <ul id="area-list"></ul>
   </div>
   <script>
     const map = L.map('mapid').setView([56.4907, -4.2026], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 100, minZoom: 5 }).addTo(map);
 
-    const countryData = {
+    const areaData = {
           "Edinburgh": [
           [55.98295, -3.25553],
 [55.98521, -3.25613],
@@ -2308,51 +2308,51 @@
       
     };
 
-    const countries = Object.keys(countryData);
-    const countryOutlines = {};
+    const areas = Object.keys(areaData);
+    const areaOutlines = {};
 
-    function suggestCountries() {
-      const countryList = document.getElementById("country-list");
-      countryList.innerHTML = "";
-      countries.forEach(country => {
+    function suggestAreas() {
+      const areaList = document.getElementById("area-list");
+      areaList.innerHTML = "";
+      areas.forEach(area => {
         const li = document.createElement("li");
-        const isChecked = getSavedCountryState(country).checked;
-        li.innerHTML = `<label><input type="checkbox" class="country-checkbox" data-country="${country}" ${isChecked ? 'checked' : ''} onchange="toggleCountryHighlight('${country}')">${country}</label>`;
-        countryList.appendChild(li);
-        if (isChecked) toggleCountryHighlight(country);
+        const isChecked = getSavedAreaState(area).checked;
+        li.innerHTML = `<label><input type="checkbox" class="area-checkbox" data-area="${area}" ${isChecked ? 'checked' : ''} onchange="toggleAreaHighlight('${area}')">${area}</label>`;
+        areaList.appendChild(li);
+        if (isChecked) toggleAreaHighlight(area);
       });
     }
 
-    function toggleCountryHighlight(countryName) {
-      const checkbox = document.querySelector(`input[data-country="${countryName}"]`);
+    function toggleAreaHighlight(areaName) {
+      const checkbox = document.querySelector(`input[data-area="${areaName}"]`);
       const highlightColor = localStorage.getItem('mapHighlightColor') || 'green';
       if (checkbox.checked) {
-        if (!countryOutlines[countryName]) {
-          const polygon = L.polygon(countryData[countryName], { color: 'black', fillColor: highlightColor, fillOpacity: 0.5, weight: 1 }).addTo(map);
-          countryOutlines[countryName] = polygon;
+        if (!areaOutlines[areaName]) {
+          const polygon = L.polygon(areaData[areaName], { color: 'black', fillColor: highlightColor, fillOpacity: 0.5, weight: 1 }).addTo(map);
+          areaOutlines[areaName] = polygon;
           map.fitBounds(polygon.getBounds());
         }
       } else {
-        if (countryOutlines[countryName]) {
-          map.removeLayer(countryOutlines[countryName]);
-          delete countryOutlines[countryName];
+        if (areaOutlines[areaName]) {
+          map.removeLayer(areaOutlines[areaName]);
+          delete areaOutlines[areaName];
         }
       }
-      saveCountryState(countryName, { checked: checkbox.checked });
+      saveAreaState(areaName, { checked: checkbox.checked });
     }
 
-    function saveCountryState(countryName, state) {
-      const savedAreas = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-      savedAreas[countryName] = state;
-      localStorage.setItem('selectedCountries', JSON.stringify(savedAreas));
+    function saveAreaState(areaName, state) {
+      const savedAreas = JSON.parse(localStorage.getItem('selectedAreas')) || {};
+      savedAreas[areaName] = state;
+      localStorage.setItem('selectedAreas', JSON.stringify(savedAreas));
     }
 
-    function getSavedCountryState(countryName) {
-      const savedAreas = JSON.parse(localStorage.getItem('selectedCountries')) || {};
-      return savedAreas[countryName] || { checked: false };
+    function getSavedAreaState(areaName) {
+      const savedAreas = JSON.parse(localStorage.getItem('selectedAreas')) || {};
+      return savedAreas[areaName] || { checked: false };
     }
 
-    suggestCountries();
+    suggestAreas();
   </script>
 </body>
 </html>

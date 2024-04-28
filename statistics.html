@@ -101,14 +101,14 @@
 
     <script>
         function clearLocalStorage() {
-        localStorage.setItem('selectedCountries', '{}');
+        localStorage.setItem('selectedAreas', '{}');
         location.reload();
         }
 
 
-        const savedAreas = JSON.parse(localStorage.getItem('selectedCountries')) || {};
+        const savedAreas = JSON.parse(localStorage.getItem('selectedAreas')) || {};
         const totalAreas = 36;
-        const visitedAreas = Object.keys(savedAreas).filter(country => savedAreas[country].checked).length;
+        const visitedAreas = Object.keys(savedAreas).filter(areas => savedAreas[areas].checked).length;
         const dashboard = document.getElementById('dashboard');
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
@@ -120,8 +120,8 @@
 
         if (visitedAreas > 0) {
             const listItems = Object.keys(savedAreas)
-                .filter(country => savedAreas[country].checked)
-                .map(country => `<li>${country}</li>`)
+                .filter(areas => savedAreas[areas].checked)
+                .map(areas => `<li>${areas}</li>`)
                 .join('');
             ul.innerHTML += listItems;
         }
